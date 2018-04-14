@@ -1,0 +1,24 @@
+.item_image {
+	width: 50%;
+	height: auto;
+	margin-top: 30px;
+	margin-bottom: 10px;
+}
+
+.item_container {
+	height: 100px;
+
+}
+
+.basket {
+	width: 100%;
+	height: 41%;
+} 
+
+.basket_image {
+	width: 15%;
+}
+
+.quantity_dropdown {
+	width: 18%;
+}
