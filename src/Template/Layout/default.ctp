@@ -13,7 +13,7 @@
  * @license       https://opensource.org/licenses/mit-license.php MIT License
  */
 
-$cakeDescription = 'CakePHP: the rapid development php framework';
+$cakeDescription = 'Fh Kiel Webshop';
 ?>
 
 <!DOCTYPE html>
@@ -50,7 +50,12 @@ $cakeDescription = 'CakePHP: the rapid development php framework';
         </div>
         <div class="uk-navbar-right">
             <ul class="uk-navbar-nav uk-hidden-small">
+                <?php if(!isset($_COOKIE['cookieuser'])): ?>
                 <li><?= $this->Html->link('Login', ['controller' => 'user', 'action' => 'login'], ['class' => 'uk-button uk-button-primary']) ?></li>
+                <?php else: ?>
+                <li><?= $this->Html->link('Logout', ['controller' => 'user', 'action' => 'logout'], ['class' => 'uk-button uk-button-primary']) ?></li>
+                <?php endif; ?>
+
                 <!--<li><?= $this->Html->link(
                         $this->Html->image('basket.png', ['class' => 'basket']), ['controller' => 'Basket', 'action' => 'index']) ?></li> -->
                 <li class="uk-active"><a href="/basket/index"><img src="https://cdn4.iconfinder.com/data/icons/adiante-apps-app-templates-incos-in-grey/512/app_type_shop_512px_GREY.png" style="width: 100%; height: 41%;"></a></li> 

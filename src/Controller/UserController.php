@@ -24,6 +24,7 @@ class UserController extends AppController
      */
     public function index()
     {
+        $this->sessionCheck();
         $user = $this->paginate($this->User);
         $this->set(compact('user'));
     }
@@ -37,6 +38,7 @@ class UserController extends AppController
      */
     public function view($id = null)
     {
+        $this->sessionCheck();
         $user = $this->User->get($id, [
             'contain' => []
         ]);
@@ -51,6 +53,7 @@ class UserController extends AppController
      */
     public function add()
     {
+        $this->sessionCheck();
         $user = $this->User->newEntity();
         if ($this->request->is('post')) {
             $user = $this->User->patchEntity($user, $this->request->getData());
@@ -75,6 +78,7 @@ class UserController extends AppController
      */
     public function edit($id = null)
     {
+        $this->sessionCheck();
         $user = $this->User->get($id, [
             'contain' => []
         ]);
@@ -99,6 +103,7 @@ class UserController extends AppController
      */
     public function delete($id = null)
     {
+        $this->sessionCheck();
         $this->request->allowMethod(['post', 'delete']);
         $user = $this->User->get($id);
         if ($this->User->delete($user)) {
@@ -112,6 +117,7 @@ class UserController extends AppController
 
     public function login($cookie_data = false, $edit = false, $id = null)
     {
+        $this->sessionCheck();
         if(!isset($_COOKIE['cookieuser'])) {
             if ($this->request->is('post')) {
                 $user = $this->request->getData();
@@ -146,6 +152,23 @@ class UserController extends AppController
 
             }
         } else {
+            return $this->redirect(['controller' => 'Item', 'action' => 'index']);
+        }
+    }
+
+    public function sessionCheck()
+    {
+        if(empty($_SESSION['token']) || !(isset($_SESSION['token']))) {
+            return $this->redirect(['controller' => 'Item', 'action' => 'index']);
+        }
+    }
+
+    public function logout()
+    {
+        if(isset($_COOKIE['cookieuser'])) {
+            debug("hello");
+            setcookie("cookieuser", $_COOKIE['cookieuser'], time()+0, "/");
+            session_destroy();
             return $this->redirect(['controller' => 'Item', 'action' => 'index']);
         }
     }

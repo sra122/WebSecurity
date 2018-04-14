@@ -43,6 +43,7 @@ class ItemController extends AppController
      */
     public function view($id = null)
     {
+        $this->sessionCheck();
         $item = $this->Item->get($id, [
             'contain' => ['Basket', 'Orders']
         ]);
@@ -57,6 +58,7 @@ class ItemController extends AppController
      */
     public function add()
     {
+        $this->sessionCheck();
         $item = $this->Item->newEntity();
         if ($this->request->is('post')) {
             $item = $this->Item->patchEntity($item, $this->request->getData());
@@ -79,6 +81,7 @@ class ItemController extends AppController
      */
     public function edit($id = null)
     {
+        $this->sessionCheck();
         $item = $this->Item->get($id, [
             'contain' => []
         ]);
@@ -103,6 +106,7 @@ class ItemController extends AppController
      */
     public function delete($id = null)
     {
+        $this->sessionCheck();
         $this->request->allowMethod(['post', 'delete']);
         $item = $this->Item->get($id);
         if ($this->Item->delete($item)) {
@@ -112,6 +116,13 @@ class ItemController extends AppController
         }
 
         return $this->redirect(['action' => 'index']);
+    }
+
+    public function sessionCheck()
+    {
+        if(empty($_SESSION['token']) || !(isset($_SESSION['token']))) {
+            return $this->redirect(['controller' => 'Item', 'action' => 'index']);
+        }
     }
 
     

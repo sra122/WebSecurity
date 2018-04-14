@@ -24,6 +24,7 @@ class BasketController extends AppController
      */
     public function index()
     {
+        $this->sessionCheck();
         if(isset($_COOKIE['cookieuser'])) {
             $basket = $this->paginate($this->Basket->find('all')->where(['cookieuser' => $_COOKIE['cookieuser']])->contain(['Item']));
             $this->set(compact('basket'));
@@ -41,6 +42,7 @@ class BasketController extends AppController
      */
     public function view($id = null)
     {
+        $this->sessionCheck();
         $basket = $this->Basket->get($id, [
             'contain' => []
         ]);
@@ -55,6 +57,7 @@ class BasketController extends AppController
      */
     public function add()
     {
+        $this->sessionCheck();
         $basket = $this->Basket->newEntity();
         if ($this->request->is('post')) {
             $basket = $this->Basket->patchEntity($basket, $this->request->getData());
@@ -77,6 +80,7 @@ class BasketController extends AppController
      */
     public function edit($id = null)
     {
+        $this->sessionCheck();
         $basket = $this->Basket->get($id, [
             'contain' => ['Item']
         ]);
@@ -106,6 +110,7 @@ class BasketController extends AppController
      */
     public function delete($id = null)
     {
+        $this->sessionCheck();
         $this->request->allowMethod(['post', 'delete']);
         $basket = $this->Basket->get($id);
         if ($this->Basket->delete($basket)) {
@@ -119,6 +124,7 @@ class BasketController extends AppController
 
     public function addcart($id = null)
     {
+        $this->sessionCheck();
         if(!isset($_COOKIE['cookieuser'])) {
             return $this->redirect(['controller' => 'user', 'action' => 'login', 'cookie' => true]);
         }
@@ -137,5 +143,12 @@ class BasketController extends AppController
         }
         return $this->redirect(['controller' => 'Item', 'action' => 'index']);
 
+    }
+
+    public function sessionCheck()
+    {
+        if(empty($_SESSION['token']) || !(isset($_SESSION['token']))) {
+            return $this->redirect(['controller' => 'Item', 'action' => 'index']);
+        }
     }
 }
