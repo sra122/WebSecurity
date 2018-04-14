@@ -54,21 +54,21 @@
         },
         {
             "name": "cakephp/cakephp",
-            "version": "3.5.14",
+            "version": "3.5.15",
             "source": {
                 "type": "git",
                 "url": "https://github.com/cakephp/cakephp.git",
-                "reference": "c97820e14ee8e34ee27a93df934412a55d4aed4b"
+                "reference": "d4e2693f033392333577478b61af757927b2f9c7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/cakephp/cakephp/zipball/c97820e14ee8e34ee27a93df934412a55d4aed4b",
-                "reference": "c97820e14ee8e34ee27a93df934412a55d4aed4b",
+                "url": "https://api.github.com/repos/cakephp/cakephp/zipball/d4e2693f033392333577478b61af757927b2f9c7",
+                "reference": "d4e2693f033392333577478b61af757927b2f9c7",
                 "shasum": ""
             },
             "require": {
                 "aura/intl": "^3.0.0",
-                "cakephp/chronos": "^1.0.0",
+                "cakephp/chronos": "^1.0.1",
                 "ext-intl": "*",
                 "ext-mbstring": "*",
                 "php": ">=5.6.0",
@@ -136,7 +136,7 @@
                 "rapid-development",
                 "validation"
             ],
-            "time": "2018-03-20T01:08:53+00:00"
+            "time": "2018-04-14T17:20:49+00:00"
         },
         {
             "name": "cakephp/chronos",
@@ -1404,16 +1404,16 @@
         },
         {
             "name": "composer/composer",
-            "version": "1.6.3",
+            "version": "1.6.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/composer/composer.git",
-                "reference": "88a69fda0f2187ad8714cedffd7a8872dceaa4c2"
+                "reference": "86ad51e8a3c64c9782446aae740a61fc6faa2522"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/composer/composer/zipball/88a69fda0f2187ad8714cedffd7a8872dceaa4c2",
-                "reference": "88a69fda0f2187ad8714cedffd7a8872dceaa4c2",
+                "url": "https://api.github.com/repos/composer/composer/zipball/86ad51e8a3c64c9782446aae740a61fc6faa2522",
+                "reference": "86ad51e8a3c64c9782446aae740a61fc6faa2522",
                 "shasum": ""
             },
             "require": {
@@ -1477,7 +1477,7 @@
                 "dependency",
                 "package"
             ],
-            "time": "2018-01-31T15:28:18+00:00"
+            "time": "2018-04-13T10:04:24+00:00"
         },
         {
             "name": "composer/semver",

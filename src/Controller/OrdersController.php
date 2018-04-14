@@ -11,6 +11,10 @@ use App\Controller\AppController;
  */
 class OrdersController extends AppController
 {
+    public function initialize()
+    {
+       session_start();
+    }
 
     /**
      * Index method
@@ -109,21 +113,18 @@ class OrdersController extends AppController
         return $this->redirect(['action' => 'index']);
     }
 
-    public function checkout($cookie = null)
+    public function checkout($cookie_id = null)
     {
         $this->sessionCheck();
-        if(empty($cookie)) {
-            setcookie('cookieuser', $_SESSION['token'], time()+600, '/', "", null, true);
-        }
-        
         $this->loadModel('Basket');
         $this->loadModel('Cookie');
-        $user = $this->Cookie->find()->where(['cookieuser' => $cookie])->contain(['User'])->first();
-        $basketItems = $this->Basket->find()->where(['cookieuser' => $cookie])->contain(['Item']);
+
+        $cookie = $this->Cookie->find()->where(['id' => $cookie_id])->first();
+        $basketItems = $this->Basket->find()->where(['cookieuser' => $cookie->cookieuser])->contain(['Item']);
         foreach($basketItems as $basketItem) 
         {
             $order = $this->Orders->newEntity();
-            $order->user_id = $user->user_id;
+            $order->user_id = $cookie->user_id;
             $order->item_id = $basketItem->item_id;
             $order->quantity = $basketItem->quantity;
             $order->price = $basketItem->price;
@@ -132,16 +133,18 @@ class OrdersController extends AppController
             $this->Orders->save($order);
         }
 
-        return $this->redirect(['action' => 'message', $cookie]);
+        return $this->redirect(['action' => 'message', $cookie_id]);
         
         
     }
 
-    public function message($cookie)
+    public function message($cookie_id)
     {
         $this->sessionCheck();
         $this->loadModel('Cookie');
-        $user = $this->Cookie->find()->where(['cookieuser' => $cookie])->contain(['User'])->first();
+        $this->loadModel('User');
+        $cookie = $this->Cookie->find()->where(['id' => $cookie_id])->first();
+        $user = $this->User->find()->where(['id' => $cookie->user_id])->first();
         $this->set(compact('user'));
     }
 

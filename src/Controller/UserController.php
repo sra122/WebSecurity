@@ -3,6 +3,7 @@ namespace App\Controller;
 
 use App\Controller\AppController;
 
+
 /**
  * User Controller
  *
@@ -166,7 +167,6 @@ class UserController extends AppController
     public function logout()
     {
         if(isset($_COOKIE['cookieuser'])) {
-            debug("hello");
             setcookie("cookieuser", $_COOKIE['cookieuser'], time()+0, "/");
             session_destroy();
             return $this->redirect(['controller' => 'Item', 'action' => 'index']);

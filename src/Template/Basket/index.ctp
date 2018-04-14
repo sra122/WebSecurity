@@ -29,7 +29,7 @@
             <?php endforeach; ?>
         </tbody>
     </table>
-    <?= $this->Html->link('Checkout', ['controller' => 'Orders', 'action' => 'checkout', $_COOKIE['cookieuser']]) ?>
+    <?= $this->Html->link('Checkout', ['controller' => 'Orders', 'action' => 'checkout', $cookie->id]) ?>
     <button class="uk-button uk-button-primary">Checkout</button>
     <div class="paginator">
         <ul class="pagination">

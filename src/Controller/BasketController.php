@@ -25,9 +25,11 @@ class BasketController extends AppController
     public function index()
     {
         $this->sessionCheck();
+        $this->loadModel('Cookie');
         if(isset($_COOKIE['cookieuser'])) {
             $basket = $this->paginate($this->Basket->find('all')->where(['cookieuser' => $_COOKIE['cookieuser']])->contain(['Item']));
-            $this->set(compact('basket'));
+            $cookie = $this->Cookie->find()->where(['cookieuser' => $_COOKIE['cookieuser']])->first();
+            $this->set(compact('basket', 'cookie'));
         } else {
             return $this->redirect(['controller' => 'User', 'action' => 'login']);
         } 
@@ -129,12 +131,16 @@ class BasketController extends AppController
             return $this->redirect(['controller' => 'user', 'action' => 'login', 'cookie' => true]);
         }
         $this->loadModel('Item');
+        $this->loadModel('Cookie');
+        $cookieInfo = $this->Cookie->find()->where(['cookieuser' => $_COOKIE['cookieuser']])->first();
+
         if ($this->request->is('post')) {
             $addbasket = $this->request->getData();
             $item_details = $this->Item->find()->where(['id' => $id])->first();
             $basket = $this->Basket->newEntity();
             $basket->cookieuser = $_COOKIE['cookieuser'];
             $basket->item_id = $id;
+            $basket->user_id = $cookieInfo->user_id;
             $basket->price = $item_details->price;
             if(!empty($addbasket['quantity'])) {
                 $basket->quantity = $addbasket['quantity'];
