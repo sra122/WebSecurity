@@ -6,7 +6,7 @@
 }
 
 .item_container {
-	height: 100px;
+	height: 140px;
 
 }
 
@@ -21,4 +21,8 @@
 
 .quantity_dropdown {
 	width: 18%;
+}
+
+.login {
+	color: white !important;
 }

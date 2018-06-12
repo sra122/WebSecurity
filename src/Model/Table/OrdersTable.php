@@ -41,13 +41,13 @@ class OrdersTable extends Table
 
         $this->addBehavior('Timestamp');
 
-        $this->belongsTo('User', [
+        $this->hasOne('User', [
             'foreignKey' => 'user_id',
-            'joinType' => 'INNER'
+            'joinType' => 'LEFT'
         ]);
-        $this->belongsTo('Item', [
+        $this->hasOne('Item', [
             'foreignKey' => 'item_id',
-            'joinType' => 'INNER'
+            'joinType' => 'LEFT'
         ]);
     }
 

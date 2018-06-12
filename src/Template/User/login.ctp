@@ -1,4 +1,4 @@
-<div class="uk-container" style="width: 40%;">
+<div class="uk-container" style="width: 40%; margin-left: 18%;">
     <?php  echo $this->Form->create(null, 
                             ['class' => 'uk-form-horizontal uk-margin-large', 'url' => ['controller' => 'User', 'action' => 'login']]);  ?>
 
@@ -20,6 +20,7 @@
                 <button class="uk-button uk-button-primary">Sign in</button>
             </div>
         </div>
-
+    <p style="margin-left: 40%;"><?= $this->Html->link(__('Register for New User'), ['action' => 'add']) ?></p>
     <?php echo $this->Form->end(); ?>
+
 </div>

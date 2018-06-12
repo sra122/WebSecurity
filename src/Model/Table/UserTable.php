@@ -9,6 +9,7 @@ use Cake\Validation\Validator;
 /**
  * User Model
  *
+ * @property |\Cake\ORM\Association\HasMany $Basket
  * @property \App\Model\Table\CookieTable|\Cake\ORM\Association\HasMany $Cookie
  * @property \App\Model\Table\OrdersTable|\Cake\ORM\Association\HasMany $Orders
  *
@@ -41,6 +42,9 @@ class UserTable extends Table
 
         $this->addBehavior('Timestamp');
 
+        $this->hasMany('Basket', [
+            'foreignKey' => 'user_id'
+        ]);
         $this->hasMany('Cookie', [
             'foreignKey' => 'user_id'
         ]);
@@ -80,15 +84,36 @@ class UserTable extends Table
             ->notEmpty('address');
 
         $validator
+            ->integer('credit_card')
+            ->add('credit_card',[
+                'length' => [
+                    'rule' => ['minLength', 16],
+                    'message' => 'Please check the credit card number it should contain 16 digits.',
+                ]
+            ])
+            ->add('credit_card', [
+                'length' => [
+                    'rule' => ['maxLength', 16],
+                    'message' => 'Please check the credit card number it should contain 16 digits.',
+                ]
+            ]);
+
+        $validator
             ->email('email')
             ->requirePresence('email', 'create')
-            ->notEmpty('email');
+            ->notEmpty('email')
+            ->add('email', 'unique', ['rule' => 'validateUnique', 'provider' => 'table'])
+            ->add('email', 'validFormat', [
+                'rule' => 'email',
+                'message' => 'Please check the email format.'
+            ]);
 
         $validator
             ->scalar('password')
-            ->maxLength('password', 30)
+            ->maxLength('password', 255)
             ->requirePresence('password', 'create')
             ->notEmpty('password');
+
 
         return $validator;
     }

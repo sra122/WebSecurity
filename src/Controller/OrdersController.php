@@ -14,6 +14,7 @@ class OrdersController extends AppController
     public function initialize()
     {
        session_start();
+       parent::initialize();
     }
 
     /**
@@ -113,14 +114,18 @@ class OrdersController extends AppController
         return $this->redirect(['action' => 'index']);
     }
 
-    public function checkout($cookie_id = null)
+    /**
+     * Checkout method
+     * @return \Cake\Http\Response|null
+     */
+    public function checkout()
     {
         $this->sessionCheck();
         $this->loadModel('Basket');
         $this->loadModel('Cookie');
 
-        $cookie = $this->Cookie->find()->where(['id' => $cookie_id])->first();
-        $basketItems = $this->Basket->find()->where(['cookieuser' => $cookie->cookieuser])->contain(['Item']);
+        $cookie = $this->Cookie->find()->where(['cookieuser' => $_COOKIE['cookieuser']])->contain(['User'])->first();
+        $basketItems = $this->Basket->find()->where(['user_id' => $cookie->user->id])->contain(['Item']);
         foreach($basketItems as $basketItem) 
         {
             $order = $this->Orders->newEntity();
@@ -131,27 +136,136 @@ class OrdersController extends AppController
             $order->amount = ($order->quantity)*($order->price);
             $order->orderdate = time();
             $this->Orders->save($order);
+
+            $basketInfo =  $this->Basket->get($basketItem->id);
+            $this->Basket->delete($basketInfo);
         }
 
-        return $this->redirect(['action' => 'message', $cookie_id]);
-        
-        
+        return $this->redirect(['action' => 'message']);
     }
 
-    public function message($cookie_id)
+    /**
+     * deliveryAddress method
+     */
+    public function deliveryAddress()
+    {
+        $this->sessionCheck();
+        $this->loadModel('Cookie');
+
+        $user_details = $this->Cookie->find()->where(['cookieuser' => $_COOKIE['cookieuser']])->contain(['User'])->first();
+        $this->set(compact('user_details'));
+    }
+
+    /**
+     * message method
+     */
+    public function message()
     {
         $this->sessionCheck();
         $this->loadModel('Cookie');
         $this->loadModel('User');
-        $cookie = $this->Cookie->find()->where(['id' => $cookie_id])->first();
+        $cookie = $this->Cookie->find()->where(['cookieuser' => $_COOKIE['cookieuser']])->first();
         $user = $this->User->find()->where(['id' => $cookie->user_id])->first();
         $this->set(compact('user'));
     }
 
+
+    /**
+     * SessionCheck method
+     * @return \Cake\Http\Response|null
+     */
     public function sessionCheck()
     {
-        if(empty($_SESSION['token']) || !(isset($_SESSION['token']))) {
+        if(empty($_COOKIE['cookieuser']) || !(isset($_COOKIE['cookieuser']))) {
+            $this->Flash->warning(__('Your session is expired. Try to login again.'));
             return $this->redirect(['controller' => 'Item', 'action' => 'index']);
+        }
+    }
+
+    /**
+     * deliveryAddressEdit method
+     * @param null $id
+     * @return \Cake\Http\Response|null
+     */
+    public function deliveryAddressEdit($id = null)
+    {
+        $this->sessionCheck();
+        $this->loadModel('User');
+        $user = $this->User->get($id, [
+            'contain' => []
+        ]);
+
+
+        $cookieInfo = $this->Cookie->find()->where(['cookieuser' => $_SESSION['token']])->first();
+
+        if($cookieInfo->user_id == $id)
+        {
+            if ($this->request->is(['patch', 'post', 'put'])) {
+                $useraddress = $this->request->getData();
+
+                $user = $this->User->patchEntity($user, $useraddress);
+
+                if($useraddress['csrf_code'] == $_SESSION['token']) {
+                    $user->address = htmlentities($useraddress['address']);
+                    if ($this->User->save($user)) {
+                        $this->Flash->success(__('The user address is updated'));
+
+                        return $this->redirect(['action' => 'delivery-address']);
+                    }
+                    $this->Flash->error(__('The user could not be saved. Please, try again.'));
+
+                } else {
+
+                    $this->Flash->error(__('Please logout and login again.'));
+                    return $this->redirect(['controller' => 'Item', 'action' => 'index']);
+                }
+            }
+            $this->set(compact('user'));
+        } else {
+            $this->Flash->error(__('Sorry you don\'t have permissions to access to data'));
+            return $this->redirect(['action' => 'delivery-address']);
+        }
+
+
+
+    }
+
+
+    public function creditCardEdit($id = null)
+    {
+        $this->sessionCheck();
+        $this->loadModel('User');
+
+        $user = $this->User->get($id, [
+            'contain' => []
+        ]);
+
+        $cookieInfo = $this->Cookie->find()->where(['cookieuser' => $_SESSION['token']])->first();
+
+        if($cookieInfo->user_id == $id)
+        {
+            if ($this->request->is(['patch', 'post', 'put'])) {
+                $userCreditCard = $this->request->getData();
+
+                $user = $this->User->patchEntity($user, $userCreditCard);
+                if($userCreditCard['csrf_code'] == $_SESSION['token']) {
+                    $user->credit_card = htmlentities($userCreditCard['credit_card']);
+                    if ($this->User->save($user)) {
+                        $this->Flash->success(__('The user credit card details are updated.'));
+
+                        return $this->redirect(['action' => 'delivery-address']);
+                    }
+                    $this->Flash->error(__('The user could not be saved. Please, try again.'));
+                } else {
+
+                    $this->Flash->error(__('Please logout and login again.'));
+                    return $this->redirect(['controller' => 'Item', 'action' => 'index']);
+                }
+            }
+            $this->set(compact('user'));
+        } else {
+            $this->Flash->error(__('Sorry you don\'t have permissions to access to data'));
+            return $this->redirect(['action' => 'delivery-address']);
         }
     }
 }

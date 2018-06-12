@@ -9,11 +9,14 @@ use Cake\ORM\Entity;
  * @property int $id
  * @property string $cookieuser
  * @property int $item_id
+ * @property int $user_id
+ * @property int $quantity
  * @property float $price
  * @property \Cake\I18n\FrozenTime $created
  * @property \Cake\I18n\FrozenTime $modified
  *
  * @property \App\Model\Entity\Item $item
+ * @property \App\Model\Entity\User $user
  */
 class Basket extends Entity
 {
@@ -30,9 +33,12 @@ class Basket extends Entity
     protected $_accessible = [
         'cookieuser' => true,
         'item_id' => true,
+        'user_id' => true,
+        'quantity' => true,
         'price' => true,
         'created' => true,
         'modified' => true,
-        'item' => true
+        'item' => true,
+        'user' => true
     ];
 }

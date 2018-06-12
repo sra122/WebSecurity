@@ -51,14 +51,16 @@ $cakeDescription = 'Fh Kiel Webshop';
         <div class="uk-navbar-right">
             <ul class="uk-navbar-nav uk-hidden-small">
                 <?php if(!isset($_COOKIE['cookieuser'])): ?>
-                <li><?= $this->Html->link('Login', ['controller' => 'user', 'action' => 'login'], ['class' => 'uk-button uk-button-primary']) ?></li>
+                <li><?= $this->Html->link('Login', ['controller' => 'user', 'action' => 'login'], ['class' => 'uk-button uk-button-primary login']) ?></li>
                 <?php else: ?>
-                <li><?= $this->Html->link('Logout', ['controller' => 'user', 'action' => 'logout'], ['class' => 'uk-button uk-button-primary']) ?></li>
+                <li><?= $this->Html->link('Logout', ['controller' => 'user', 'action' => 'logout'], ['class' => 'uk-button uk-button-primary login']) ?></li>
                 <?php endif; ?>
-
                 <!--<li><?= $this->Html->link(
                         $this->Html->image('basket.png', ['class' => 'basket']), ['controller' => 'Basket', 'action' => 'index']) ?></li> -->
-                <li class="uk-active"><a href="/basket/index"><img src="https://cdn4.iconfinder.com/data/icons/adiante-apps-app-templates-incos-in-grey/512/app_type_shop_512px_GREY.png" style="width: 100%; height: 41%;"></a></li> 
+                <li class="uk-active"><a href="/basket/index"><img src="https://cdn4.iconfinder.com/data/icons/adiante-apps-app-templates-incos-in-grey/512/app_type_shop_512px_GREY.png" style="width: 100%; height: 41%;"></a></li>
+                <?php if(isset($_COOKIE['cookieuser'])): ?>
+                    <li><a style="width: 1%; margin-left: -109%; margin-top: -44%;"><?= $totalItems ?></a></li>
+                <?php endif; ?>
             </ul>
         </div>
 

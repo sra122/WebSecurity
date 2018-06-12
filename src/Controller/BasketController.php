@@ -1,8 +1,6 @@
 <?php
 namespace App\Controller;
 
-use App\Controller\AppController;
-
 /**
  * Basket Controller
  *
@@ -15,6 +13,7 @@ class BasketController extends AppController
     public function initialize()
     {
        session_start();
+       parent::initialize();
     }
 
     /**
@@ -24,10 +23,10 @@ class BasketController extends AppController
      */
     public function index()
     {
-        $this->sessionCheck();
         $this->loadModel('Cookie');
         if(isset($_COOKIE['cookieuser'])) {
-            $basket = $this->paginate($this->Basket->find('all')->where(['cookieuser' => $_COOKIE['cookieuser']])->contain(['Item']));
+            $userDetails = $this->Cookie->find()->where(['cookieuser' => $_COOKIE['cookieuser']])->contain(['User'])->first();
+            $basket = $this->paginate($this->Basket->find('all')->where(['user_id' => $userDetails->user->id])->contain(['Item']));
             $cookie = $this->Cookie->find()->where(['cookieuser' => $_COOKIE['cookieuser']])->first();
             $this->set(compact('basket', 'cookie'));
         } else {
@@ -83,24 +82,34 @@ class BasketController extends AppController
     public function edit($id = null)
     {
         $this->sessionCheck();
+        $this->loadModel('Cookie');
         $basket = $this->Basket->get($id, [
             'contain' => ['Item']
         ]);
-        if ($this->request->is(['patch', 'post', 'put'])) {
-            $editBasket = $this->request->getData();
-            $basket->price = $editBasket['price'];
-            $basket->quantity = $editBasket['quantity'];
-            if(isset($_COOKIE['cookieuser'])) {
-                if ($this->Basket->save($basket)) {
-                    return $this->redirect(['action' => 'index']);
+        $cookieInfo = $this->Cookie->find()->where(['cookieuser' => $_SESSION['token']])->first();
+
+        if($cookieInfo->user_id == $basket->user_id) {
+            if ($this->request->is(['patch', 'post', 'put'])) {
+                $editBasket = $this->request->getData();
+                $basket->quantity = $editBasket['quantity'];
+                $basket->price = ($basket->quantity)*($basket->item->price);
+                if(isset($_COOKIE['cookieuser'])) {
+                    if ($this->Basket->save($basket)) {
+                        return $this->redirect(['action' => 'index']);
+                    }
+                } else {
+                    return $this->redirect(['controller' => 'User', 'action' => 'login', 'edit' => true, 'id' => $id]);
                 }
-            } else {
-                return $this->redirect(['controller' => 'User', 'action' => 'login', 'edit' => true, 'id' => $id]);
+
+                $this->Flash->error(__('The basket could not be saved. Please, try again.'));
             }
-            
-            $this->Flash->error(__('The basket could not be saved. Please, try again.'));
+            $this->set(compact('basket'));
+        } else {
+            $this->Flash->error(__('Sorry you don\'t have permissions to access the data'));
+            return $this->redirect(['controller' => 'Item', 'action' => 'index']);
         }
-        $this->set(compact('basket'));
+
+
     }
 
     /**
@@ -124,11 +133,18 @@ class BasketController extends AppController
         return $this->redirect(['action' => 'index']);
     }
 
-    public function addcart($id = null)
+
+    /**
+     * addcart Method
+     * @param null $id
+     * @return \Cake\Http\Response|null
+     */
+    public function addCart($id = null)
     {
-        $this->sessionCheck();
         if(!isset($_COOKIE['cookieuser'])) {
-            return $this->redirect(['controller' => 'user', 'action' => 'login', 'cookie' => true]);
+            return $this->redirect(['controller' => 'user',
+                                    'action' => 'login'
+                                    ]);
         }
         $this->loadModel('Item');
         $this->loadModel('Cookie');
@@ -141,19 +157,25 @@ class BasketController extends AppController
             $basket->cookieuser = $_COOKIE['cookieuser'];
             $basket->item_id = $id;
             $basket->user_id = $cookieInfo->user_id;
-            $basket->price = $item_details->price;
             if(!empty($addbasket['quantity'])) {
                 $basket->quantity = $addbasket['quantity'];
+                $basket->price = ($item_details->price)*($basket->quantity);
                 $this->Basket->save($basket);
+                $this->Flash->success(__('Your item is successfully added to the cart'));
             }
         }
         return $this->redirect(['controller' => 'Item', 'action' => 'index']);
 
     }
 
+    /**
+     * SessionCheck method
+     * @return \Cake\Http\Response|null
+     */
     public function sessionCheck()
     {
-        if(empty($_SESSION['token']) || !(isset($_SESSION['token']))) {
+        if(empty($_COOKIE['cookieuser']) || !(isset($_COOKIE['cookieuser']))) {
+            $this->Flash->warning(__('Your session is expired. Try to login again.'));
             return $this->redirect(['controller' => 'Item', 'action' => 'index']);
         }
     }

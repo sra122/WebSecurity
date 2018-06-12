@@ -16,6 +16,7 @@ class ItemController extends AppController
     public function initialize()
     {
        session_start();
+       parent::initialize();
     }
 
     /**
@@ -43,7 +44,6 @@ class ItemController extends AppController
      */
     public function view($id = null)
     {
-        $this->sessionCheck();
         $item = $this->Item->get($id, [
             'contain' => ['Basket', 'Orders']
         ]);
@@ -118,9 +118,14 @@ class ItemController extends AppController
         return $this->redirect(['action' => 'index']);
     }
 
+    /**
+     * SessionCheck method
+     * @return \Cake\Http\Response|null
+     */
     public function sessionCheck()
     {
-        if(empty($_SESSION['token']) || !(isset($_SESSION['token']))) {
+        if(empty($_COOKIE['cookieuser']) || !(isset($_COOKIE['cookieuser']))) {
+            $this->Flash->warning(__('Your session is expired. Try to login again.'));
             return $this->redirect(['controller' => 'Item', 'action' => 'index']);
         }
     }

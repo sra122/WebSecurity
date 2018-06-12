@@ -10,6 +10,7 @@ use Cake\ORM\Entity;
  * @property string $firstname
  * @property string $lastname
  * @property string $address
+ * @property int $credit_card
  * @property string $email
  * @property string $password
  * @property \Cake\I18n\FrozenTime $created
@@ -34,6 +35,7 @@ class User extends Entity
         'firstname' => true,
         'lastname' => true,
         'address' => true,
+        'credit_card' => true,
         'email' => true,
         'password' => true,
         'created' => true,

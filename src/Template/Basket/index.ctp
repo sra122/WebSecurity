@@ -23,14 +23,13 @@
                 <td><?= $basket->quantity ?></td>
                 <td class="actions">
                     <?= $this->Html->link(__('Edit'), ['action' => 'edit', $basket->id]) ?>
-                    <?= $this->Form->postLink(__('Delete'), ['action' => 'delete', $basket->id], ['confirm' => __('Are you sure you want to delete # {0}?', $basket->id)]) ?>
+                    <?= $this->Form->postLink(__('Delete'), ['action' => 'delete', $basket->id], ['confirm' => __('Are you sure you want to delete')]) ?>
                 </td>
             </tr>
             <?php endforeach; ?>
         </tbody>
     </table>
-    <?= $this->Html->link('Checkout', ['controller' => 'Orders', 'action' => 'checkout', $cookie->id]) ?>
-    <button class="uk-button uk-button-primary">Checkout</button>
+    <?= $this->Html->link('Checkout', ['controller' => 'Orders', 'action' => 'deliveryAddress']) ?>
     <div class="paginator">
         <ul class="pagination">
             <?= $this->Paginator->first('<< ' . __('first')) ?>

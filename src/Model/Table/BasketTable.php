@@ -10,6 +10,7 @@ use Cake\Validation\Validator;
  * Basket Model
  *
  * @property \App\Model\Table\ItemTable|\Cake\ORM\Association\BelongsTo $Item
+ * @property \App\Model\Table\UserTable|\Cake\ORM\Association\BelongsTo $User
  *
  * @method \App\Model\Entity\Basket get($primaryKey, $options = [])
  * @method \App\Model\Entity\Basket newEntity($data = null, array $options = [])
@@ -44,6 +45,10 @@ class BasketTable extends Table
             'foreignKey' => 'item_id',
             'joinType' => 'INNER'
         ]);
+        $this->belongsTo('User', [
+            'foreignKey' => 'user_id',
+            'joinType' => 'INNER'
+        ]);
     }
 
     /**
@@ -60,9 +65,14 @@ class BasketTable extends Table
 
         $validator
             ->scalar('cookieuser')
-            ->maxLength('cookieuser', 30)
+            ->maxLength('cookieuser', 255)
             ->requirePresence('cookieuser', 'create')
             ->notEmpty('cookieuser');
+
+        $validator
+            ->integer('quantity')
+            ->requirePresence('quantity', 'create')
+            ->notEmpty('quantity');
 
         $validator
             ->numeric('price')
@@ -82,6 +92,7 @@ class BasketTable extends Table
     public function buildRules(RulesChecker $rules)
     {
         $rules->add($rules->existsIn(['item_id'], 'Item'));
+        $rules->add($rules->existsIn(['user_id'], 'User'));
 
         return $rules;
     }

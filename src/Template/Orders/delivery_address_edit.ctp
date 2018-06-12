@@ -7,14 +7,11 @@
 <div class="user form large-9 medium-8 columns content">
     <?= $this->Form->create($user) ?>
     <fieldset>
-        <legend><?= __('Add User') ?></legend>
+        <legend><?= __('Edit User') ?></legend>
         <?php
-            echo $this->Form->control('firstname');
-            echo $this->Form->control('lastname');
-            echo $this->Form->control('address');
-            echo $this->Form->control('email');
-            echo $this->Form->control('password');
+        echo $this->Form->control('address');
         ?>
+        <input type="hidden" name="csrf_code" value=<?= $_SESSION['token'] ?>>
     </fieldset>
     <?= $this->Form->button(__('Submit')) ?>
     <?= $this->Form->end() ?>
