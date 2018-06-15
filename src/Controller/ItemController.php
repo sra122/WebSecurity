@@ -58,18 +58,29 @@ class ItemController extends AppController
      */
     public function add()
     {
-        $this->sessionCheck();
-        $item = $this->Item->newEntity();
-        if ($this->request->is('post')) {
-            $item = $this->Item->patchEntity($item, $this->request->getData());
-            if ($this->Item->save($item)) {
-                $this->Flash->success(__('The item has been saved.'));
+        $this->loadModel('Cookie');
 
-                return $this->redirect(['action' => 'index']);
+        $adminRole =$this->Cookie->find()->where(['cookieuser' => $_SESSION['token']])->contain(['User'])->first();
+
+        if($adminRole->user->role === 'ADMIN') {
+            $this->sessionCheck();
+            $item = $this->Item->newEntity();
+            if ($this->request->is('post')) {
+                $item = $this->Item->patchEntity($item, $this->request->getData());
+                if ($this->Item->save($item)) {
+                    $this->Flash->success(__('The item has been saved.'));
+
+                    return $this->redirect(['action' => 'index']);
+                }
+                $this->Flash->error(__('The item could not be saved. Please, try again.'));
             }
-            $this->Flash->error(__('The item could not be saved. Please, try again.'));
+            $this->set(compact('item'));
+        } else {
+            $this->Flash->error(__('Page not found'));
+            return $this->redirect(['controller' => 'Item', 'action' => 'index']);
+
         }
-        $this->set(compact('item'));
+
     }
 
     /**
@@ -81,20 +92,31 @@ class ItemController extends AppController
      */
     public function edit($id = null)
     {
-        $this->sessionCheck();
-        $item = $this->Item->get($id, [
-            'contain' => []
-        ]);
-        if ($this->request->is(['patch', 'post', 'put'])) {
-            $item = $this->Item->patchEntity($item, $this->request->getData());
-            if ($this->Item->save($item)) {
-                $this->Flash->success(__('The item has been saved.'));
+        $this->loadModel('Cookie');
 
-                return $this->redirect(['action' => 'index']);
+        $adminRole =$this->Cookie->find()->where(['cookieuser' => $_SESSION['token']])->contain(['User'])->first();
+
+        if($adminRole->user->role === 'ADMIN') {
+            $this->sessionCheck();
+            $item = $this->Item->get($id, [
+                'contain' => []
+            ]);
+            if ($this->request->is(['patch', 'post', 'put'])) {
+                $item = $this->Item->patchEntity($item, $this->request->getData());
+                if ($this->Item->save($item)) {
+                    $this->Flash->success(__('The item has been saved.'));
+
+                    return $this->redirect(['action' => 'index']);
+                }
+                $this->Flash->error(__('The item could not be saved. Please, try again.'));
             }
-            $this->Flash->error(__('The item could not be saved. Please, try again.'));
+            $this->set(compact('item'));
+        } else {
+            $this->Flash->error(__('Page not found'));
+            return $this->redirect(['controller' => 'Item', 'action' => 'index']);
+
         }
-        $this->set(compact('item'));
+
     }
 
     /**
@@ -106,16 +128,27 @@ class ItemController extends AppController
      */
     public function delete($id = null)
     {
-        $this->sessionCheck();
-        $this->request->allowMethod(['post', 'delete']);
-        $item = $this->Item->get($id);
-        if ($this->Item->delete($item)) {
-            $this->Flash->success(__('The item has been deleted.'));
+        $this->loadModel('Cookie');
+
+        $adminRole =$this->Cookie->find()->where(['cookieuser' => $_SESSION['token']])->contain(['User'])->first();
+
+        if($adminRole->user->role === 'ADMIN') {
+            $this->sessionCheck();
+            $this->request->allowMethod(['post', 'delete']);
+            $item = $this->Item->get($id);
+            if ($this->Item->delete($item)) {
+                $this->Flash->success(__('The item has been deleted.'));
+            } else {
+                $this->Flash->error(__('The item could not be deleted. Please, try again.'));
+            }
+
+            return $this->redirect(['action' => 'index']);
         } else {
-            $this->Flash->error(__('The item could not be deleted. Please, try again.'));
+            $this->Flash->error(__('Page not found'));
+            return $this->redirect(['controller' => 'Item', 'action' => 'index']);
+
         }
 
-        return $this->redirect(['action' => 'index']);
     }
 
     /**

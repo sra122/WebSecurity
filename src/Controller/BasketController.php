@@ -43,12 +43,22 @@ class BasketController extends AppController
      */
     public function view($id = null)
     {
-        $this->sessionCheck();
-        $basket = $this->Basket->get($id, [
-            'contain' => []
-        ]);
+        $this->loadModel('Cookie');
 
-        $this->set('basket', $basket);
+        $adminRole =$this->Cookie->find()->where(['cookieuser' => $_SESSION['token']])->contain(['User'])->first();
+
+        if($adminRole->user->role === 'ADMIN') {
+            $this->sessionCheck();
+            $basket = $this->Basket->get($id, [
+                'contain' => []
+            ]);
+
+            $this->set('basket', $basket);
+        } else {
+            $this->Flash->error(__('Page not found'));
+            return $this->redirect(['controller' => 'Item', 'action' => 'index']);
+        }
+
     }
 
     /**
@@ -58,18 +68,25 @@ class BasketController extends AppController
      */
     public function add()
     {
-        $this->sessionCheck();
-        $basket = $this->Basket->newEntity();
-        if ($this->request->is('post')) {
-            $basket = $this->Basket->patchEntity($basket, $this->request->getData());
-            if ($this->Basket->save($basket)) {
-                $this->Flash->success(__('The basket has been saved.'));
+        $this->loadModel('Cookie');
 
-                return $this->redirect(['action' => 'index']);
+        $adminRole =$this->Cookie->find()->where(['cookieuser' => $_SESSION['token']])->contain(['User'])->first();
+
+        if($adminRole->user->role === 'ADMIN') {
+            $this->sessionCheck();
+            $basket = $this->Basket->newEntity();
+            if ($this->request->is('post')) {
+                $basket = $this->Basket->patchEntity($basket, $this->request->getData());
+                if ($this->Basket->save($basket)) {
+                    $this->Flash->success(__('The basket has been saved.'));
+
+                    return $this->redirect(['action' => 'index']);
+                }
+                $this->Flash->error(__('The basket could not be saved. Please, try again.'));
             }
-            $this->Flash->error(__('The basket could not be saved. Please, try again.'));
+            $this->set(compact('basket'));
         }
-        $this->set(compact('basket'));
+
     }
 
     /**
@@ -88,6 +105,7 @@ class BasketController extends AppController
         ]);
         $cookieInfo = $this->Cookie->find()->where(['cookieuser' => $_SESSION['token']])->first();
 
+        // testing current user id and cookie belongs to same user or not
         if($cookieInfo->user_id == $basket->user_id) {
             if ($this->request->is(['patch', 'post', 'put'])) {
                 $editBasket = $this->request->getData();
@@ -122,15 +140,28 @@ class BasketController extends AppController
     public function delete($id = null)
     {
         $this->sessionCheck();
-        $this->request->allowMethod(['post', 'delete']);
-        $basket = $this->Basket->get($id);
-        if ($this->Basket->delete($basket)) {
-            $this->Flash->success(__('The basket has been deleted.'));
+        $this->loadModel('Cookie');
+        $basket = $this->Basket->get($id, [
+            'contain' => ['Item']
+        ]);
+        $cookieInfo = $this->Cookie->find()->where(['cookieuser' => $_SESSION['token']])->first();
+
+        // testing current user id and cookie belongs to same user or not
+        if($cookieInfo->user_id == $basket->user_id) {
+            $this->request->allowMethod(['post', 'delete']);
+            $basket = $this->Basket->get($id);
+            if ($this->Basket->delete($basket)) {
+                $this->Flash->success(__('The basket has been deleted.'));
+            } else {
+                $this->Flash->error(__('The basket could not be deleted. Please, try again.'));
+            }
+
+            return $this->redirect(['action' => 'index']);
         } else {
-            $this->Flash->error(__('The basket could not be deleted. Please, try again.'));
+            $this->Flash->error(__('Sorry you don\'t have permissions to access the data'));
+            return $this->redirect(['controller' => 'Item', 'action' => 'index']);
         }
 
-        return $this->redirect(['action' => 'index']);
     }
 
 

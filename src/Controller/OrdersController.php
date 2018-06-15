@@ -24,10 +24,21 @@ class OrdersController extends AppController
      */
     public function index()
     {
-        $this->sessionCheck();
-        $orders = $this->paginate($this->Orders);
+        $this->loadModel('Cookie');
 
-        $this->set(compact('orders'));
+        $adminRole =$this->Cookie->find()->where(['cookieuser' => $_SESSION['token']])->contain(['User'])->first();
+
+        if($adminRole->user->role === 'ADMIN') {
+            $this->sessionCheck();
+            $orders = $this->paginate($this->Orders);
+
+            $this->set(compact('orders'));
+        } else {
+        $this->Flash->error(__('Page not found'));
+        return $this->redirect(['controller' => 'Item', 'action' => 'index']);
+
+        }
+
     }
 
     /**
@@ -39,12 +50,22 @@ class OrdersController extends AppController
      */
     public function view($id = null)
     {
-        $this->sessionCheck();
-        $order = $this->Orders->get($id, [
-            'contain' => []
-        ]);
+        $this->loadModel('Cookie');
 
-        $this->set('order', $order);
+        $adminRole =$this->Cookie->find()->where(['cookieuser' => $_SESSION['token']])->contain(['User'])->first();
+
+        if($adminRole->user->role === 'ADMIN') {
+            $this->sessionCheck();
+            $order = $this->Orders->get($id, [
+                'contain' => []
+            ]);
+
+            $this->set('order', $order);
+        } else {
+            $this->Flash->error(__('Page not found'));
+            return $this->redirect(['controller' => 'Item', 'action' => 'index']);
+
+        }
     }
 
     /**
@@ -77,20 +98,30 @@ class OrdersController extends AppController
      */
     public function edit($id = null)
     {
-        $this->sessionCheck();
-        $order = $this->Orders->get($id, [
-            'contain' => []
-        ]);
-        if ($this->request->is(['patch', 'post', 'put'])) {
-            $order = $this->Orders->patchEntity($order, $this->request->getData());
-            if ($this->Orders->save($order)) {
-                $this->Flash->success(__('The order has been saved.'));
+        $this->loadModel('Cookie');
 
-                return $this->redirect(['action' => 'index']);
+        $adminRole =$this->Cookie->find()->where(['cookieuser' => $_SESSION['token']])->contain(['User'])->first();
+
+        if($adminRole->user->role === 'ADMIN') {
+            $this->sessionCheck();
+            $order = $this->Orders->get($id, [
+                'contain' => []
+            ]);
+            if ($this->request->is(['patch', 'post', 'put'])) {
+                $order = $this->Orders->patchEntity($order, $this->request->getData());
+                if ($this->Orders->save($order)) {
+                    $this->Flash->success(__('The order has been saved.'));
+
+                    return $this->redirect(['action' => 'index']);
+                }
+                $this->Flash->error(__('The order could not be saved. Please, try again.'));
             }
-            $this->Flash->error(__('The order could not be saved. Please, try again.'));
+            $this->set(compact('order'));
+        } else {
+            $this->Flash->error(__('Page not found'));
+            return $this->redirect(['controller' => 'Item', 'action' => 'index']);
+
         }
-        $this->set(compact('order'));
     }
 
     /**
@@ -102,16 +133,27 @@ class OrdersController extends AppController
      */
     public function delete($id = null)
     {
-        $this->sessionCheck();
-        $this->request->allowMethod(['post', 'delete']);
-        $order = $this->Orders->get($id);
-        if ($this->Orders->delete($order)) {
-            $this->Flash->success(__('The order has been deleted.'));
+        $this->loadModel('Cookie');
+
+        $adminRole =$this->Cookie->find()->where(['cookieuser' => $_SESSION['token']])->contain(['User'])->first();
+
+        if($adminRole->user->role === 'ADMIN') {
+            $this->sessionCheck();
+            $this->request->allowMethod(['post', 'delete']);
+            $order = $this->Orders->get($id);
+            if ($this->Orders->delete($order)) {
+                $this->Flash->success(__('The order has been deleted.'));
+            } else {
+                $this->Flash->error(__('The order could not be deleted. Please, try again.'));
+            }
+
+            return $this->redirect(['action' => 'index']);
         } else {
-            $this->Flash->error(__('The order could not be deleted. Please, try again.'));
+            $this->Flash->error(__('Page not found'));
+            return $this->redirect(['controller' => 'Item', 'action' => 'index']);
+
         }
 
-        return $this->redirect(['action' => 'index']);
     }
 
     /**
@@ -249,11 +291,18 @@ class OrdersController extends AppController
 
                 $user = $this->User->patchEntity($user, $userCreditCard);
                 if($userCreditCard['csrf_code'] == $_SESSION['token']) {
-                    $user->credit_card = htmlentities($userCreditCard['credit_card']);
-                    if ($this->User->save($user)) {
-                        $this->Flash->success(__('The user credit card details are updated.'));
 
-                        return $this->redirect(['action' => 'delivery-address']);
+                    //Credit verification
+                    if(preg_match('/^\d{16}$/', $userCreditCard['credit_card']))
+                    {
+                        $user->credit_card = htmlentities($userCreditCard['credit_card']);
+                        if ($this->User->save($user)) {
+                            $this->Flash->success(__('The user credit card details are updated.'));
+
+                            return $this->redirect(['action' => 'delivery-address']);
+                        }
+                    } else {
+                        $this->Flash->error(__('Credit card number should be minimum 16 digits'));
                     }
                     $this->Flash->error(__('The user could not be saved. Please, try again.'));
                 } else {

@@ -26,9 +26,19 @@ class UserController extends AppController
      */
     public function index()
     {
-        $this->sessionCheck();
-        $user = $this->paginate($this->User);
-        $this->set(compact('user'));
+        $this->loadModel('Cookie');
+
+        $adminRole =$this->Cookie->find()->where(['cookieuser' => $_SESSION['token']])->contain(['User'])->first();
+
+        if($adminRole->user->role === 'ADMIN') {
+            $this->sessionCheck();
+            $user = $this->paginate($this->User);
+            $this->set(compact('user'));
+        } else {
+            $this->Flash->error(__('Page not found'));
+            return $this->redirect(['controller' => 'Item', 'action' => 'index']);
+
+        }
     }
 
     /**
@@ -40,12 +50,24 @@ class UserController extends AppController
      */
     public function view($id = null)
     {
-        $this->sessionCheck();
-        $user = $this->User->get($id, [
-            'contain' => []
-        ]);
+        $this->loadModel('Cookie');
 
-        $this->set('user', $user);
+        $adminRole =$this->Cookie->find()->where(['cookieuser' => $_SESSION['token']])->contain(['User'])->first();
+
+        if($adminRole->user->role === 'ADMIN')
+        {
+            $this->sessionCheck();
+            $user = $this->User->get($id, [
+                'contain' => []
+            ]);
+
+            $this->set('user', $user);
+        } else {
+            $this->Flash->error(__('Page not found'));
+            return $this->redirect(['controller' => 'Item', 'action' => 'index']);
+
+        }
+
     }
 
     /**
@@ -61,7 +83,12 @@ class UserController extends AppController
             $user = $this->User->patchEntity($user, $newUser);
             $user->firstname = htmlentities($newUser['firstname']);
             $user->lastname = htmlentities($newUser['lastname']);
-            $user->email = htmlentities($newUser['email']);
+
+            //Email Validation
+            if(filter_var($newUser['email'], FILTER_VALIDATE_EMAIL))
+            {
+                $user->email = $newUser['email'];
+            }
 
             // Hashing the password using bcrypt algorithm
             $user->password = password_hash($user->password, PASSWORD_BCRYPT);
@@ -86,20 +113,32 @@ class UserController extends AppController
      */
     public function edit($id = null)
     {
-        $this->sessionCheck();
-        $user = $this->User->get($id, [
-            'contain' => []
-        ]);
-        if ($this->request->is(['patch', 'post', 'put'])) {
-            $user = $this->User->patchEntity($user, $this->request->getData());
-            if ($this->User->save($user)) {
-                $this->Flash->success(__('The user has been saved.'));
+        $this->loadModel('Cookie');
 
-                return $this->redirect(['action' => 'index']);
+        $adminRole =$this->Cookie->find()->where(['cookieuser' => $_SESSION['token']])->contain(['User'])->first();
+
+        if($adminRole->user->role === 'ADMIN')
+        {
+            $this->sessionCheck();
+            $user = $this->User->get($id, [
+                'contain' => []
+            ]);
+            if ($this->request->is(['patch', 'post', 'put'])) {
+                $user = $this->User->patchEntity($user, $this->request->getData());
+                if ($this->User->save($user)) {
+                    $this->Flash->success(__('The user has been saved.'));
+
+                    return $this->redirect(['action' => 'index']);
+                }
+                $this->Flash->error(__('The user could not be saved. Please, try again.'));
             }
-            $this->Flash->error(__('The user could not be saved. Please, try again.'));
+            $this->set(compact('user'));
+        } else {
+            $this->Flash->error(__('Page not found'));
+            return $this->redirect(['controller' => 'Item', 'action' => 'index']);
+
         }
-        $this->set(compact('user'));
+
     }
 
     /**
@@ -111,16 +150,28 @@ class UserController extends AppController
      */
     public function delete($id = null)
     {
-        $this->sessionCheck();
-        $this->request->allowMethod(['post', 'delete']);
-        $user = $this->User->get($id);
-        if ($this->User->delete($user)) {
-            $this->Flash->success(__('The user has been deleted.'));
+        $this->loadModel('Cookie');
+
+        $adminRole =$this->Cookie->find()->where(['cookieuser' => $_SESSION['token']])->contain(['User'])->first();
+
+        if($adminRole->user->role === 'ADMIN')
+        {
+            $this->sessionCheck();
+            $this->request->allowMethod(['post', 'delete']);
+            $user = $this->User->get($id);
+            if ($this->User->delete($user)) {
+                $this->Flash->success(__('The user has been deleted.'));
+            } else {
+                $this->Flash->error(__('The user could not be deleted. Please, try again.'));
+            }
+
+            return $this->redirect(['action' => 'index']);
         } else {
-            $this->Flash->error(__('The user could not be deleted. Please, try again.'));
+            $this->Flash->error(__('Page not found'));
+            return $this->redirect(['controller' => 'Item', 'action' => 'index']);
+
         }
 
-        return $this->redirect(['action' => 'index']);
     }
 
     public function login()
@@ -181,8 +232,11 @@ class UserController extends AppController
      */
     public function logout()
     {
+        $this->sessionCheck();
         if(isset($_COOKIE['cookieuser'])) {
+            // updating the cookie for 0 seconds
             setcookie("cookieuser", $_COOKIE['cookieuser'], time()+0, "/");
+            // destroying the session
             session_destroy();
             $this->Flash->success(__('You have logged out successfully'));
             return $this->redirect(['controller' => 'Item', 'action' => 'index']);
